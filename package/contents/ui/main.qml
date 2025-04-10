@@ -42,7 +42,7 @@ PlasmoidItem {
     property string publicIP: ""
     property string publicIP_OLD: ""
     property string countryCode: ""
-    property bool showingLocalIP: true
+    property bool showingLocalIP: plasmoid.configuration.defaultShowLocalIP
     readonly property bool debugMode: false
     readonly property string flagsPath: "../images/pays/"
     property bool isResuming: false

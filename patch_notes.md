@@ -1,20 +1,21 @@
-## Version v0.7.5
+## Version v0.8.7
 
 ### 🇬🇧 English
 
 #### New Features
 
--   **Flag position option**: Added a choice for the position of the flag, either left or right of the IP address.
+-   **Default IP display option**: Added a setting to choose whether to display the local or public IP address by default when the widget starts.
 
 #### Improvements
 
+-   Enhanced configuration options for better user experience.
 -   Continued optimization and stability improvements.
 
 #### Bug Fixes
 
--   Ongoing bug fixes and performance enhancements.
+-   General performance enhancements and code refinements.
 
-I will keep working to enhance the widget's features and reliability!
+I will continue to work on improving the widget's features and reliability!
 For any issues or suggestions, please visit our GitHub repository.
 
 ---
@@ -23,15 +24,16 @@ For any issues or suggestions, please visit our GitHub repository.
 
 #### Nouvelles Fonctionnalités
 
--   **Option de position du drapeau** : Ajout d'un choix pour la position du drapeau, soit à gauche soit à droite de l'adresse IP.
+-   **Option d'affichage IP par défaut** : Ajout d'un paramètre permettant de choisir si l'adresse IP locale ou publique est affichée par défaut au démarrage du widget.
 
 #### Améliorations
 
--   Amélioration continue de l'optimisation et de la stabilité.
+-   Amélioration des options de configuration pour une meilleure expérience utilisateur.
+-   Optimisation continue et améliorations de stabilité.
 
 #### Corrections de Bugs
 
--   Corrections de bugs en cours et améliorations des performances.
+-   Améliorations générales des performances et raffinements du code.
 
 Je continuerai à travailler pour améliorer les fonctionnalités et la fiabilité du widget !
 Pour tout problème ou suggestion, veuillez visiter notre dépôt GitHub.

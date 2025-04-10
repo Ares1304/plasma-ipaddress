@@ -10,7 +10,7 @@
         "Icon": "network-wired",
         "Id": "org.kde.plasma.ipaddress",
         "Name": "IP Address Display",
-        "Version": "0.8.6",
+        "Version": "0.8.7",
         "Website": "https://github.com/Ares1304/plasma-ipaddress/"
     },
     "X-KDE-ServiceTypes": "Plasma/Applet",

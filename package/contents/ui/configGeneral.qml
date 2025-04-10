@@ -44,6 +44,7 @@ Kirigami.FormLayout {
     property alias cfg_customPrefix: customPrefixField.text
     property alias cfg_noIPMessage: noIPMessageField.text
     property alias cfg_disconnectedTextColor: disconnectedColorPicker.chosenColor
+    property alias cfg_defaultShowLocalIP: defaultShowLocalIP.checked
 
     /**
      * Network Interface Management
@@ -111,6 +112,13 @@ Kirigami.FormLayout {
                 plasmoid.configuration.selectedInterface = model[currentIndex]
             }
         }
+    }
+    
+    // Option to choose the default display (local or public IP)
+    QQC2.CheckBox {
+        id: defaultShowLocalIP
+        Kirigami.FormData.label: Translations.getTranslation("defaultShowLocalIP", currentLocale)
+        checked: plasmoid.configuration.defaultShowLocalIP
     }
 
     QQC2.TextField {
