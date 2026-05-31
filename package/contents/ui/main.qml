@@ -62,8 +62,13 @@ PlasmoidItem {
      * Usage: Ensures proper display in Plasma panel
      * Interactions: Adapts to panel position and content changes
      */
+    preferredRepresentation: fullRepresentation
     Layout.fillWidth: false
     Layout.fillHeight: false
+    Layout.minimumWidth: contentLayout.implicitWidth
+    Layout.minimumHeight: contentLayout.implicitHeight
+    Layout.maximumWidth: Infinity
+    Layout.maximumHeight: Infinity
     Layout.preferredWidth: contentLayout.implicitWidth
     Layout.preferredHeight: contentLayout.implicitHeight
 
@@ -74,129 +79,145 @@ PlasmoidItem {
      * Usage: Creates the visual hierarchy of the widget
      * Interactions: Updates based on content and state changes
      */
-    ColumnLayout {
-        id: contentLayout
+    fullRepresentation: Item {
+        id: representationRoot
         anchors.fill: parent
-        spacing: 5
+        implicitWidth: contentLayout.implicitWidth
+        implicitHeight: contentLayout.implicitHeight
+        Layout.minimumWidth: contentLayout.implicitWidth
+        Layout.minimumHeight: contentLayout.implicitHeight
+        Layout.maximumWidth: Infinity
+        Layout.maximumHeight: Infinity
+        Layout.preferredWidth: contentLayout.implicitWidth
+        Layout.preferredHeight: contentLayout.implicitHeight
 
-        RowLayout {
-            id: contentRow
-            Layout.fillWidth: true
+        ColumnLayout {
+            id: contentLayout
+            anchors.centerIn: parent
+            width: implicitWidth
+            height: implicitHeight
             spacing: 5
 
-            // Debug Information Display
-            QQC2.Label {
-                id: debugLabel
-                text: {
-                    let debugInfo = [
-                        "Country: " + (countryCode || "none"),
-                        "Public: " + !showingLocalIP,
-                        "LoadingIP: " + isLoadingIP,
-                        "LoadingCountry: " + isLoadingCountry,
-                        "IP: " + (showingLocalIP ? localIP : publicIP)
-                    ].join(" | ")
-                    return debugInfo
-                }
-                visible: debugMode && !showingLocalIP
-                color: "#FF0000"
-                font.pointSize: 8
-                Layout.alignment: Qt.AlignVCenter
-            }
-
-            // Container for IP information and flag
             RowLayout {
-                id: ipAndFlagRow
+                id: contentRow
+                Layout.fillWidth: false
+                Layout.alignment: Qt.AlignHCenter
                 spacing: 5
-                Layout.alignment: Qt.AlignVCenter
-                Layout.fillWidth: true
 
-                // Adjust the layoutDirection based on flagPosition
-                // 0: Flag on the right (default), 1: Flag on the left
-                layoutDirection: plasmoid.configuration.flagPosition === 1 ? Qt.RightToLeft : Qt.LeftToRight
-
-                // IP Information Display
-                ColumnLayout {
-                    id: ipInfoColumn
-                    spacing: 0
-                    Layout.alignment: Qt.AlignHCenter
-                    visible: !plasmoid.configuration.showFlagOnly || showingLocalIP
-
-                    QQC2.Label {
-                        id: ipTypeLabel
-                        text: showingLocalIP ?
-                            Translations.getTranslation("localIP", currentLocale) :
-                            Translations.getTranslation("publicIP", currentLocale)
-                        font.pointSize: Math.round(Kirigami.Theme.defaultFont.pointSize * 0.8)
-                        Layout.alignment: Qt.AlignHCenter
-                        color: plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
-                            ? plasmoid.configuration.textColor 
-                            : Kirigami.Theme.textColor
-                        visible: plasmoid.configuration.showTypeLabel
+                // Debug Information Display
+                QQC2.Label {
+                    id: debugLabel
+                    text: {
+                        let debugInfo = [
+                            "Country: " + (countryCode || "none"),
+                            "Public: " + !showingLocalIP,
+                            "LoadingIP: " + isLoadingIP,
+                            "LoadingCountry: " + isLoadingCountry,
+                            "IP: " + (showingLocalIP ? localIP : publicIP)
+                        ].join(" | ")
+                        return debugInfo
                     }
-
-
-                    QQC2.Label {
-                        id: ipAddressLabel
-                        text: {
-                            let ipText;
-                            if (showingLocalIP) {
-                                ipText = localIP ? localIP : plasmoid.configuration.noIPMessage;
-                            } else {
-                                ipText = publicIP ? publicIP : plasmoid.configuration.noIPMessage;
-                            }
-                            return customPrefix ? (customPrefix + " " + ipText) : ipText;
-                        }
-                        Layout.alignment: Qt.AlignHCenter
-                        color: {
-                            if ((!localIP && showingLocalIP) || (!publicIP && !showingLocalIP)) {
-                                return plasmoid.configuration.disconnectedTextColor;
-                            }
-                            return plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
-                                ? plasmoid.configuration.textColor 
-                                : Kirigami.Theme.textColor;
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: toggleIPDisplay()
-                    }
+                    visible: debugMode && !showingLocalIP
+                    color: "#FF0000"
+                    font.pointSize: 8
+                    Layout.alignment: Qt.AlignVCenter
                 }
 
-                // Flag Display Component
-                Item {
-                    id: flagContainer
-                    Layout.preferredWidth: 17
-                    Layout.preferredHeight: 17
-                    Layout.alignment: Qt.AlignVCenter
+                // Container for IP information and flag
+                RowLayout {
+                    id: ipAndFlagRow
+                    spacing: 5
+                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+                    Layout.fillWidth: false
 
-                    Image {
-                        id: flagImage
-                        anchors.fill: parent
-                        source: {
-                            if (countryCode && !debugMode) {
-                                return flagsPath + countryCode.toLowerCase() + ".svg"
-                            }
-                            return ""
+                    // Adjust the layoutDirection based on flagPosition
+                    // 0: Flag on the right (default), 1: Flag on the left
+                    layoutDirection: plasmoid.configuration.flagPosition === 1 ? Qt.RightToLeft : Qt.LeftToRight
+
+                    // IP Information Display
+                    ColumnLayout {
+                        id: ipInfoColumn
+                        spacing: 0
+                        Layout.alignment: Qt.AlignHCenter
+                        visible: !plasmoid.configuration.showFlagOnly || showingLocalIP
+
+                        QQC2.Label {
+                            id: ipTypeLabel
+                            text: showingLocalIP ?
+                                Translations.getTranslation("localIP", currentLocale) :
+                                Translations.getTranslation("publicIP", currentLocale)
+                            font.pointSize: Math.round(Kirigami.Theme.defaultFont.pointSize * 0.8)
+                            Layout.alignment: Qt.AlignHCenter
+                            color: plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
+                                ? plasmoid.configuration.textColor 
+                                : Kirigami.Theme.textColor
+                            visible: plasmoid.configuration.showTypeLabel
                         }
-                        visible: !debugMode && shouldShowFlag()
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true
 
-                        QQC2.ToolTip {
-                            text: Countries.getCountryName(countryCode)
-                            visible: flagMouseArea.containsMouse
-                            delay: 500
+
+                        QQC2.Label {
+                            id: ipAddressLabel
+                            text: {
+                                let ipText;
+                                if (showingLocalIP) {
+                                    ipText = localIP ? localIP : plasmoid.configuration.noIPMessage;
+                                } else {
+                                    ipText = publicIP ? publicIP : plasmoid.configuration.noIPMessage;
+                                }
+                                return customPrefix ? (customPrefix + " " + ipText) : ipText;
+                            }
+                            Layout.alignment: Qt.AlignHCenter
+                            color: {
+                                if ((!localIP && showingLocalIP) || (!publicIP && !showingLocalIP)) {
+                                    return plasmoid.configuration.disconnectedTextColor;
+                                }
+                                return plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
+                                    ? plasmoid.configuration.textColor 
+                                    : Kirigami.Theme.textColor;
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: toggleIPDisplay()
                         }
                     }
 
-                    MouseArea {
-                        id: flagMouseArea
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        hoverEnabled: true  // Enable hover detection
-                        onClicked: toggleIPDisplay()
+                    // Flag Display Component
+                    Item {
+                        id: flagContainer
+                        Layout.preferredWidth: 17
+                        Layout.preferredHeight: 17
+                        Layout.alignment: Qt.AlignVCenter
+
+                        Image {
+                            id: flagImage
+                            anchors.fill: parent
+                            source: {
+                                if (countryCode && !debugMode) {
+                                    return flagsPath + countryCode.toLowerCase() + ".svg"
+                                }
+                                return ""
+                            }
+                            visible: !debugMode && shouldShowFlag()
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+
+                            QQC2.ToolTip {
+                                text: Countries.getCountryName(countryCode)
+                                visible: flagMouseArea.containsMouse
+                                delay: 500
+                            }
+                        }
+
+                        MouseArea {
+                            id: flagMouseArea
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            hoverEnabled: true  // Enable hover detection
+                            onClicked: toggleIPDisplay()
+                        }
                     }
                 }
             }
