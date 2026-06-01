@@ -35,6 +35,7 @@ PlasmoidItem {
      * Interactions: Updated by various functions and user actions
      */
     readonly property string currentLocale: Qt.locale().name.split("_")[0]
+    readonly property bool isVerticalPanel: plasmoid.location === PlasmaCore.Types.LeftEdge || plasmoid.location === PlasmaCore.Types.RightEdge
     property bool isPublicMode: false
     property bool isLoadingIP: false
     property bool isLoadingCountry: false
@@ -89,12 +90,12 @@ PlasmoidItem {
         Layout.maximumWidth: Infinity
         Layout.maximumHeight: Infinity
         Layout.preferredWidth: contentLayout.implicitWidth
-        Layout.preferredHeight: contentLayout.implicitHeight
+        Layout.preferredHeight: isVerticalPanel ? Infinity : contentLayout.implicitHeight
+        Layout.fillHeight: isVerticalPanel
 
         ColumnLayout {
             id: contentLayout
             anchors.fill: parent
-            anchors.margins: Kirigami.Units.largeSpacing
             width: implicitWidth
             height: implicitHeight
             spacing: 5
