@@ -93,15 +93,18 @@ PlasmoidItem {
 
         ColumnLayout {
             id: contentLayout
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.margins: Kirigami.Units.largeSpacing
             width: implicitWidth
             height: implicitHeight
             spacing: 5
 
+            Item { Layout.fillHeight: true }
+
             RowLayout {
                 id: contentRow
                 Layout.fillWidth: false
-                Layout.alignment: Qt.AlignHCenter
+                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
                 spacing: 5
 
                 // Debug Information Display
@@ -187,9 +190,10 @@ PlasmoidItem {
                     // Flag Display Component
                     Item {
                         id: flagContainer
-                        Layout.preferredWidth: 17
+                        Layout.preferredWidth: shouldShowFlag() ? 17 : 0
                         Layout.preferredHeight: 17
                         Layout.alignment: Qt.AlignVCenter
+                        visible: shouldShowFlag()
 
                         Image {
                             id: flagImage
@@ -221,6 +225,8 @@ PlasmoidItem {
                     }
                 }
             }
+
+            Item { Layout.fillHeight: true }
         }
     }
 
