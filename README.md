@@ -1,4 +1,4 @@
-# IP Address Display for KDE Plasma
+# IP Address Display for KDE Plasma 5.27 (tested on mint : is ok)
 
 This addon allows you to easily view your local and public IP addresses directly from your KDE Plasma desktop.
 
@@ -30,7 +30,7 @@ Right-click on the widget and select "Configure..." to access settings such as t
 
 ---
 
-# Affichage des Adresses IP pour KDE Plasma
+# Affichage des Adresses IP pour KDE Plasma 5.27 
 
 Cet addon vous permet de visualiser facilement vos adresses IP locales et publiques directement depuis votre bureau KDE Plasma.
 
