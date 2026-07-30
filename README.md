@@ -1,4 +1,4 @@
-# IP Address Display for KDE Plasma
+# IP Address Display for KDE Plasma 5.27
 
 This addon allows you to easily view your local and public IP addresses directly from your KDE Plasma desktop.
 
