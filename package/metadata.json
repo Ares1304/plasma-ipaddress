@@ -9,14 +9,11 @@
         "Description": "IP Address Display for KDE Plasma 6.x",
         "Icon": "network-wired",
         "Id": "org.kde.plasma.ipaddress",
+        "License": "GPL-3.0-or-later",
         "Name": "IP Address Display",
-        "Version": "0.9.1",
+        "Version": "0.9.5",
         "Website": "https://github.com/Ares1304/plasma-ipaddress/"
     },
-    "X-KDE-ServiceTypes": "Plasma/Applet",
-    "X-Plasma-API": "declarativeappletscript",
-    "X-Plasma-API-Minimum-Version": "6.0",
-    "X-Plasma-MainScript": "ui/main.qml",
-    "X-Plasma-ConfigPlugins": ["configuration"],
-    "X-Plasma-ConfigModule": "kcm_ipaddress"
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
 }

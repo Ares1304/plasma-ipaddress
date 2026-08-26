@@ -21,8 +21,8 @@
 // Import necessary Qt modules
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Dialogs as QtDialogs
 import Qt.labs.platform
+import org.kde.kirigami as Kirigami
 
 // Main component for the color picker
 Item {

@@ -2,6 +2,8 @@
 
 This addon allows you to easily view your local and public IP addresses directly from your KDE Plasma desktop.
 
+**Current version: v0.9.5**
+
 ## Installation
 
 ### Via KDE Taskbar
@@ -22,17 +24,21 @@ Once installed, you can add the IP Address Display widget to your desktop or pan
 2. Select "Add Widgets".
 3. Find "IP Address Display" in the list and click on it to add.
 
-Click on the widget to toggle between local and public IP display.
+Left-click on the widget to toggle between local and public IP display. Middle-click it to copy the currently displayed IP address to the clipboard.
+
+In a panel, the IP type stays above the address and the country flag is centered beside the complete two-line block.
 
 ## Configuration
 
-Right-click on the widget and select "Configure..." to access settings such as text color, flag display, and more.
+Right-click on the widget and select "Configure..." to choose automatic or manual interface selection, the default IP type, a custom prefix, country flag options, font size, and text colors. Automatic selection hides container-only interfaces such as Docker bridges and veth peers. The page remains scrollable on smaller screens so every option stays accessible.
 
 ---
 
 # Affichage des Adresses IP pour KDE Plasma
 
 Cet addon vous permet de visualiser facilement vos adresses IP locales et publiques directement depuis votre bureau KDE Plasma.
+
+**Version actuelle : v0.9.5**
 
 ## Installation
 
@@ -54,8 +60,10 @@ Une fois installé, vous pouvez ajouter le widget Affichage des Adresses IP à v
 2. Sélectionnez "Ajouter des widgets".
 3. Trouvez "IP Address Display" dans la liste et cliquez dessus pour l'ajouter.
 
-Cliquez sur le widget pour basculer entre l'affichage de l'IP locale et publique.
+Faites un clic gauche sur le widget pour basculer entre l'affichage de l'IP locale et publique. Faites un clic milieu pour copier l'adresse IP actuellement affichée dans le presse-papiers.
+
+Dans un panneau, le type d'IP reste au-dessus de l'adresse et le drapeau du pays est centré à côté du bloc complet sur deux lignes.
 
 ## Configuration
 
-Faites un clic droit sur le widget et sélectionnez "Configurer..." pour accéder aux paramètres tels que la couleur du texte, l'affichage du drapeau, et plus encore.
+Faites un clic droit sur le widget et sélectionnez "Configurer..." pour choisir la sélection automatique ou manuelle de l'interface, le type d'IP par défaut, un préfixe personnalisé, les options du drapeau, la taille de la police et les couleurs du texte. La sélection automatique masque les interfaces réservées aux conteneurs, comme les ponts Docker et les pairs veth. La page reste défilable sur les petits écrans afin que toutes les options soient accessibles.
