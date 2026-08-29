@@ -28,21 +28,42 @@ Item {
     readonly property bool verticalPanel: compactMode
         && Plasmoid.formFactor === PlasmaCore.Types.Vertical
     readonly property bool panelMode: horizontalPanel || verticalPanel
-    readonly property real contentPadding: compactMode ? Kirigami.Units.smallSpacing : 0
+    readonly property real contentPadding: compactMode && !panelMode
+        ? Kirigami.Units.smallSpacing
+        : 0
 
     /*
      * Keep the original two-line hierarchy: the IP type stays above the
-     * address. A panel still has one fixed thickness, so scale the complete
-     * block only when it physically cannot fit. Using its real implicit height
-     * avoids guessed font metrics and preserves the configured font ratio.
+     * address. Scaling the complete row from its own implicit height creates a
+     * feedback loop: a larger requested font makes the row taller, which then
+     * makes Plasma shrink the row again. Integer font metrics can even make a
+     * higher percentage render smaller. Instead, compress only the part above
+     * 100% into the panel's fixed cross-axis while keeping a monotonic mapping.
+     * The desktop representation still applies the exact configured ratio.
      */
     readonly property real panelThickness: horizontalPanel ? height : (verticalPanel ? width : 0)
-    readonly property real panelContentScale: {
-        if (!panelMode || panelThickness <= 0 || contentRow.implicitHeight <= 0) return 1.0
+    readonly property real panelFitScale: {
+        if (!panelMode || panelThickness <= 0) return 1.0
 
-        var availableThickness = Math.max(1, panelThickness - 2 * contentPadding)
-        return Math.min(1.0, availableThickness / contentRow.implicitHeight)
+        // About two grid units are the normal content thickness of a Plasma
+        // panel. The small safety margin absorbs integer font-metric rounding.
+        return Math.max(0.1, Math.min(1.5,
+            panelThickness / (2.2 * Kirigami.Units.gridUnit)))
     }
+    readonly property real panelAddressFontScale: controller.configuredFontScale <= 1.0
+        ? controller.configuredFontScale
+        : 1.0 + (controller.configuredFontScale - 1.0) * 0.35
+    readonly property real panelTypeFontScale: controller.configuredFontScale <= 1.0
+        ? controller.configuredFontScale * 0.8
+        : 0.8 + (controller.configuredFontScale - 1.0) * 0.05
+    readonly property real baseFontPixelSize: Math.max(1, Kirigami.Theme.defaultFont.pixelSize)
+    readonly property real addressFontPixelSize: baseFontPixelSize * (panelMode
+        ? panelAddressFontScale * panelFitScale
+        : controller.configuredFontScale)
+    readonly property real typeFontPixelSize: baseFontPixelSize * (panelMode
+        ? panelTypeFontScale * panelFitScale
+        : 0.8 * controller.configuredFontScale)
+
     // A country flag remains a compact status marker in a panel. Letting it
     // grow to 200% would unnecessarily force the adjacent text to shrink.
     readonly property real flagSize: compactMode
@@ -50,9 +71,9 @@ Item {
         : Math.max(8, Kirigami.Units.iconSizes.small * controller.configuredFontScale)
 
     implicitWidth: (verticalPanel ? contentRow.implicitHeight : contentRow.implicitWidth)
-        * panelContentScale + 2 * contentPadding
+        + 2 * contentPadding
     implicitHeight: (verticalPanel ? contentRow.implicitWidth : contentRow.implicitHeight)
-        * panelContentScale + 2 * contentPadding
+        + 2 * contentPadding
 
     // Plasma panels are fixed on their cross-axis and free on their main axis.
     // These axis-aware constraints mirror Plasma's own compact representations.
@@ -70,7 +91,6 @@ Item {
         id: contentRow
         anchors.centerIn: parent
         spacing: Kirigami.Units.smallSpacing
-        scale: display.panelContentScale
         // A side panel has a fixed width and free vertical space. Rotate the
         // textual row so the address can use that free axis instead of clipping.
         rotation: display.verticalPanel ? -90 : 0
@@ -122,7 +142,7 @@ Item {
                             : Translations.getTranslation("publicIP", controller.currentLocale)
                         font.pixelSize: Math.max(
                             1,
-                            Kirigami.Theme.defaultFont.pixelSize * 0.8 * controller.configuredFontScale
+                            display.typeFontPixelSize
                         )
                         Layout.alignment: Qt.AlignHCenter
                         horizontalAlignment: Text.AlignHCenter
@@ -134,7 +154,7 @@ Item {
                         text: controller.displayedText()
                         font.pixelSize: Math.max(
                             1,
-                            Kirigami.Theme.defaultFont.pixelSize * controller.configuredFontScale
+                            display.addressFontPixelSize
                         )
                         Layout.alignment: Qt.AlignHCenter
                         horizontalAlignment: Text.AlignHCenter

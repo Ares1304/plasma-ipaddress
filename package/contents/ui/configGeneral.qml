@@ -56,6 +56,23 @@ KCM.SimpleKCM {
     property string cfg_selectedInterface: ""
     property string cfg_lastSelectedInterface: ""
 
+    // Plasma 6 provides both the saved cfg_* values and their cfg_*Default
+    // counterparts when it creates this page. Declaring the default properties
+    // keeps the configuration loader quiet and preserves reliable Reset/Cancel
+    // behavior without writing anything before the user presses Apply or OK.
+    property color cfg_textColorDefault: "transparent"
+    property bool cfg_showFlagDefault: true
+    property bool cfg_showTypeLabelDefault: true
+    property int cfg_fontScaleDefault: 100
+    property bool cfg_showFlagOnlyDefault: false
+    property int cfg_flagPositionDefault: 0
+    property string cfg_selectedInterfaceDefault: ""
+    property string cfg_customPrefixDefault: ""
+    property bool cfg_defaultShowLocalIPDefault: true
+    property string cfg_lastSelectedInterfaceDefault: ""
+    property string cfg_noIPMessageDefault: "Disconnected"
+    property color cfg_disconnectedTextColorDefault: "#ff0000"
+
     /**
      * Network Interface Management
      * Purpose: Handle network interface selection
@@ -183,7 +200,7 @@ KCM.SimpleKCM {
                 if (cfg_selectedInterface) cfg_lastSelectedInterface = cfg_selectedInterface
             }
         }
-    
+
         // Option to choose the default display (local or public IP)
         QQC2.CheckBox {
             id: defaultShowLocalIP

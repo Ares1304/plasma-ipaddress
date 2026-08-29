@@ -11,7 +11,7 @@
         "Id": "org.kde.plasma.ipaddress",
         "License": "GPL-3.0-or-later",
         "Name": "IP Address Display",
-        "Version": "0.9.5",
+        "Version": "0.9.6",
         "Website": "https://github.com/Ares1304/plasma-ipaddress/"
     },
     "KPackageStructure": "Plasma/Applet",

@@ -2,7 +2,7 @@
 
 This addon allows you to easily view your local and public IP addresses directly from your KDE Plasma desktop.
 
-**Current version: v0.9.5**
+**Current version: v0.9.6**
 
 ## Installation
 
@@ -30,7 +30,7 @@ In a panel, the IP type stays above the address and the country flag is centered
 
 ## Configuration
 
-Right-click on the widget and select "Configure..." to choose automatic or manual interface selection, the default IP type, a custom prefix, country flag options, font size, and text colors. Automatic selection hides container-only interfaces such as Docker bridges and veth peers. The page remains scrollable on smaller screens so every option stays accessible.
+Right-click on the widget and select "Configure..." to choose automatic or manual interface selection, the default IP type, a custom prefix, country flag options, font size, and text colors. Automatic selection hides container-only interfaces such as Docker bridges and veth peers. The page remains scrollable on smaller screens so every option stays accessible. In a panel, font-size changes remain progressive and automatically adapt to the available thickness.
 
 ---
 
@@ -38,7 +38,7 @@ Right-click on the widget and select "Configure..." to choose automatic or manua
 
 Cet addon vous permet de visualiser facilement vos adresses IP locales et publiques directement depuis votre bureau KDE Plasma.
 
-**Version actuelle : v0.9.5**
+**Version actuelle : v0.9.6**
 
 ## Installation
 
@@ -66,4 +66,4 @@ Dans un panneau, le type d'IP reste au-dessus de l'adresse et le drapeau du pays
 
 ## Configuration
 
-Faites un clic droit sur le widget et sélectionnez "Configurer..." pour choisir la sélection automatique ou manuelle de l'interface, le type d'IP par défaut, un préfixe personnalisé, les options du drapeau, la taille de la police et les couleurs du texte. La sélection automatique masque les interfaces réservées aux conteneurs, comme les ponts Docker et les pairs veth. La page reste défilable sur les petits écrans afin que toutes les options soient accessibles.
+Faites un clic droit sur le widget et sélectionnez "Configurer..." pour choisir la sélection automatique ou manuelle de l'interface, le type d'IP par défaut, un préfixe personnalisé, les options du drapeau, la taille de la police et les couleurs du texte. La sélection automatique masque les interfaces réservées aux conteneurs, comme les ponts Docker et les pairs veth. La page reste défilable sur les petits écrans afin que toutes les options soient accessibles. Dans un panneau, les changements de taille de police restent progressifs et s'adaptent automatiquement à l'épaisseur disponible.
