@@ -6,7 +6,7 @@
             }
         ],
         "Category": "System Information",
-        "Description": "IP Address Display for KDE Plasma 5.27+",
+        "Description": "IP Address Display for KDE Plasma 5.27",
         "Icon": "network-wired",
         "Id": "org.kde.plasma.ipaddress",
         "License": "GPL-3.0-or-later",
