@@ -7,7 +7,7 @@ This addon allows you to easily view your local and public IP addresses directly
 Two packages are provided:
 
 - `package/` — for **KDE Plasma 6.x**
-- `package-plasma5/` — for **KDE Plasma 5.27** (and other Plasma 5.25+ releases); see [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+- `package-plasma5/` — for **KDE Plasma 5.27** (the only officially supported Plasma 5 release); see [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
 
 ## Installation
 
@@ -48,7 +48,7 @@ Cet addon vous permet de visualiser facilement vos adresses IP locales et publiq
 Deux paquets sont fournis :
 
 - `package/` — pour **KDE Plasma 6.x**
-- `package-plasma5/` — pour **KDE Plasma 5.27** (et autres versions Plasma 5.25+) ; voir [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+- `package-plasma5/` — pour **KDE Plasma 5.27** (seule version Plasma 5 officiellement prise en charge) ; voir [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
 
 ## Installation
 
