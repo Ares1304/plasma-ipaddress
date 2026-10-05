@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Jennova"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "IP Address Display for KDE Plasma 5.27+",
+        "Icon": "network-wired",
+        "Id": "org.kde.plasma.ipaddress",
+        "License": "GPL-3.0-or-later",
+        "Name": "IP Address Display",
+        "Version": "0.9.6-plasma5.27",
+        "Website": "https://github.com/Ares1304/plasma-ipaddress/"
+    },
+    "X-KDE-ServiceTypes": "Plasma/Applet",
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

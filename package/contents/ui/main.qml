@@ -7,15 +7,12 @@
  */
 
 import QtQuick 2.15
-import QtQuick.Layouts 1.15
 import org.kde.plasma.core as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents
 import org.kde.plasma.plasmoid 2.0
 import org.kde.plasma.plasma5support 2.0 as P5Support
-import QtQuick.Controls 2.15 as QQC2
 import org.kde.kirigami 2.20 as Kirigami
+import org.kde.kquickcontrolsaddons 2.0 as KQuickControlsAddons
 import "../translations/translations.js" as Translations
-import "../data/countries.js" as Countries
 
 /**
  * Main Plasmoid Container
@@ -33,22 +30,45 @@ PlasmoidItem {
      * Operation: Maintain current state of IPs, loading states, and display modes
      * Usage: Referenced throughout the widget for state management
      * Interactions: Updated by various functions and user actions
-     */
+    */
     readonly property string currentLocale: Qt.locale().name.split("_")[0]
-    readonly property bool isVerticalPanel: plasmoid.location === PlasmaCore.Types.LeftEdge || plasmoid.location === PlasmaCore.Types.RightEdge
-    property bool isPublicMode: false
     property bool isLoadingIP: false
     property bool isLoadingCountry: false
+    property bool isLoadingLocalIP: false
+    property bool isProbingRoute: false
+    property bool resumeSignalActive: false
     property string localIP: Translations.getTranslation("loading", currentLocale)
     property string publicIP: ""
-    property string publicIP_OLD: ""
     property string countryCode: ""
     property bool showingLocalIP: plasmoid.configuration.defaultShowLocalIP
     readonly property bool debugMode: false
     readonly property string flagsPath: "../images/pays/"
-    property bool isResuming: false
     property string customPrefix: plasmoid.configuration.customPrefix
-    property string selectedInterface: plasmoid.configuration.selectedInterface
+    property string selectedInterface: plasmoid.configuration.selectedInterface || ""
+    readonly property real configuredFontScale: Math.max(
+        0.6,
+        Math.min(2.0, Number(plasmoid.configuration.fontScale || 100) / 100)
+    )
+
+    // Network requests are versioned so a reply from an old mode or route is
+    // never allowed to overwrite the currently displayed information.
+    property int modeEpoch: 0
+    property int networkEpoch: 0
+    property int publicRequestModeEpoch: -1
+    property int publicRequestNetworkEpoch: -1
+    property int publicFailureCount: 0
+    property string routeFingerprint: ""
+    property string routedLocalIP: ""
+    property string copyFeedbackText: ""
+    property bool copyFeedbackVisible: false
+
+    readonly property int publicRefreshInterval: 5 * 60 * 1000
+    readonly property string localAddressesCommand: "ip -4 -o addr show scope global"
+    // `ip route get` only inspects the local routing table; it sends no packet.
+    readonly property string routeProbeCommand: "ip -4 route get 1.1.1.1 2>/dev/null"
+    // One public request returns both values, avoiding the old second provider
+    // and its rate limit. This command is only started while public mode is shown.
+    readonly property string publicLookupCommand: "curl -fsS --connect-timeout 3 --max-time 8 https://api.country.is/"
 
     /**
     * Country Names Mapping
@@ -63,15 +83,12 @@ PlasmoidItem {
      * Usage: Ensures proper display in Plasma panel
      * Interactions: Adapts to panel position and content changes
      */
-    preferredRepresentation: fullRepresentation
-    Layout.fillWidth: false
-    Layout.fillHeight: false
-    Layout.minimumWidth: contentLayout.implicitWidth
-    Layout.minimumHeight: contentLayout.implicitHeight
-    Layout.maximumWidth: Infinity
-    Layout.maximumHeight: Infinity
-    Layout.preferredWidth: contentLayout.implicitWidth
-    Layout.preferredHeight: contentLayout.implicitHeight
+    // Plasma uses a compact representation inside panels and a full one on the
+    // desktop. Keeping them explicit prevents panel geometry from being treated
+    // like a freely resizable desktop widget.
+    preferredRepresentation: Plasmoid.formFactor === PlasmaCore.Types.Planar
+        ? fullRepresentation
+        : compactRepresentation
 
     /**
      * Main Layout Structure
@@ -80,155 +97,14 @@ PlasmoidItem {
      * Usage: Creates the visual hierarchy of the widget
      * Interactions: Updates based on content and state changes
      */
-    fullRepresentation: Item {
-        id: representationRoot
-        anchors.fill: parent
-        implicitWidth: contentLayout.implicitWidth
-        implicitHeight: contentLayout.implicitHeight
-        Layout.minimumWidth: contentLayout.implicitWidth
-        Layout.minimumHeight: contentLayout.implicitHeight
-        Layout.maximumWidth: Infinity
-        Layout.maximumHeight: Infinity
-        Layout.preferredWidth: contentLayout.implicitWidth
-        Layout.preferredHeight: isVerticalPanel ? Infinity : contentLayout.implicitHeight
-        Layout.fillHeight: isVerticalPanel
+    compactRepresentation: IpDisplay {
+        controller: root
+        compactMode: true
+    }
 
-        ColumnLayout {
-            id: contentLayout
-            anchors.fill: parent
-            width: implicitWidth
-            height: implicitHeight
-            spacing: 5
-
-            Item { Layout.fillHeight: true }
-
-            RowLayout {
-                id: contentRow
-                Layout.fillWidth: false
-                Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                spacing: 5
-
-                // Debug Information Display
-                QQC2.Label {
-                    id: debugLabel
-                    text: {
-                        let debugInfo = [
-                            "Country: " + (countryCode || "none"),
-                            "Public: " + !showingLocalIP,
-                            "LoadingIP: " + isLoadingIP,
-                            "LoadingCountry: " + isLoadingCountry,
-                            "IP: " + (showingLocalIP ? localIP : publicIP)
-                        ].join(" | ")
-                        return debugInfo
-                    }
-                    visible: debugMode && !showingLocalIP
-                    color: "#FF0000"
-                    font.pointSize: 8
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
-                // Container for IP information and flag
-                RowLayout {
-                    id: ipAndFlagRow
-                    spacing: 5
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    Layout.fillWidth: false
-
-                    // Adjust the layoutDirection based on flagPosition
-                    // 0: Flag on the right (default), 1: Flag on the left
-                    layoutDirection: plasmoid.configuration.flagPosition === 1 ? Qt.RightToLeft : Qt.LeftToRight
-
-                    // IP Information Display
-                    ColumnLayout {
-                        id: ipInfoColumn
-                        spacing: 0
-                        Layout.alignment: Qt.AlignHCenter
-                        visible: !plasmoid.configuration.showFlagOnly || showingLocalIP
-
-                        QQC2.Label {
-                            id: ipTypeLabel
-                            text: showingLocalIP ?
-                                Translations.getTranslation("localIP", currentLocale) :
-                                Translations.getTranslation("publicIP", currentLocale)
-                            font.pointSize: Math.round(Kirigami.Theme.defaultFont.pointSize * 0.8)
-                            Layout.alignment: Qt.AlignHCenter
-                            color: plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
-                                ? plasmoid.configuration.textColor 
-                                : Kirigami.Theme.textColor
-                            visible: plasmoid.configuration.showTypeLabel
-                        }
-
-
-                        QQC2.Label {
-                            id: ipAddressLabel
-                            text: {
-                                let ipText;
-                                if (showingLocalIP) {
-                                    ipText = localIP ? localIP : plasmoid.configuration.noIPMessage;
-                                } else {
-                                    ipText = publicIP ? publicIP : plasmoid.configuration.noIPMessage;
-                                }
-                                return customPrefix ? (customPrefix + " " + ipText) : ipText;
-                            }
-                            Layout.alignment: Qt.AlignHCenter
-                            color: {
-                                if ((!localIP && showingLocalIP) || (!publicIP && !showingLocalIP)) {
-                                    return plasmoid.configuration.disconnectedTextColor;
-                                }
-                                return plasmoid.configuration.textColor != "" && String(plasmoid.configuration.textColor) !== "#00000000" 
-                                    ? plasmoid.configuration.textColor 
-                                    : Kirigami.Theme.textColor;
-                            }
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: toggleIPDisplay()
-                        }
-                    }
-
-                    // Flag Display Component
-                    Item {
-                        id: flagContainer
-                        Layout.preferredWidth: shouldShowFlag() ? 17 : 0
-                        Layout.preferredHeight: 17
-                        Layout.alignment: Qt.AlignVCenter
-                        visible: shouldShowFlag()
-
-                        Image {
-                            id: flagImage
-                            anchors.fill: parent
-                            source: {
-                                if (countryCode && !debugMode) {
-                                    return flagsPath + countryCode.toLowerCase() + ".svg"
-                                }
-                                return ""
-                            }
-                            visible: !debugMode && shouldShowFlag()
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-
-                            QQC2.ToolTip {
-                                text: Countries.getCountryName(countryCode)
-                                visible: flagMouseArea.containsMouse
-                                delay: 500
-                            }
-                        }
-
-                        MouseArea {
-                            id: flagMouseArea
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            hoverEnabled: true  // Enable hover detection
-                            onClicked: toggleIPDisplay()
-                        }
-                    }
-                }
-            }
-
-            Item { Layout.fillHeight: true }
-        }
+    fullRepresentation: IpDisplay {
+        controller: root
+        compactMode: false
     }
 
     /**
@@ -243,7 +119,7 @@ PlasmoidItem {
         engine: "executable"
         connectedSources: []
 
-        onNewData: {
+        onNewData: function(sourceName, data) {
             var stdout = data["stdout"]
             var stderr = data["stderr"]
             if (debugMode) {
@@ -262,23 +138,31 @@ PlasmoidItem {
         signal exited(string cmd, string stdout, string stderr)
     }
 
+    KQuickControlsAddons.Clipboard {
+        id: clipboard
+    }
+
     P5Support.DataSource {
         id: pmSource
         engine: "powermanagement"
         connectedSources: ["powerdevil"]
         
-        onSourceAdded: {
-            disconnectSource(source);
-            connectSource(source);
+        onSourceAdded: function(source) {
+            disconnectSource(source)
+            connectSource(source)
         }
         
         onDataChanged: {
-            if (data["powerdevil"] && data["powerdevil"]["Is Resuming"] === true) {
+            // Missing power-management data is a normal startup state. Always
+            // coerce it to false before assigning the strongly typed property.
+            var resuming = Boolean(
+                data["powerdevil"] && data["powerdevil"]["Is Resuming"] === true
+            )
+            if (resuming && !resumeSignalActive) {
                 if (debugMode) console.log("💻 Wake from sleep detected")
-                isResuming = true
-                // Force a complete update
-                updateData()
+                refreshAfterNetworkEvent("resume")
             }
+            resumeSignalActive = resuming
         }
     }
 
@@ -286,7 +170,8 @@ PlasmoidItem {
         if (debugMode) {
             console.log("🎬 Widget startup")
         }
-        updateData()
+        probeRoute()
+        refreshCurrentMode(true)
     }
 
     /**
@@ -297,28 +182,203 @@ PlasmoidItem {
      * Interactions: Update widget state with retrieved data
      */
     function getLocalIP() {
-        if (debugMode) console.log("🏠 Requesting local IP for interface:", selectedInterface)
-        if (selectedInterface) {
-            executable.exec("ip -4 addr show " + selectedInterface + " scope global | grep inet | awk '{print $2}' | cut -d/ -f1 | head -n1")
-        } else {
-            executable.exec("ip -4 addr show scope global | grep inet | awk '{print $2}' | cut -d/ -f1 | head -n1")
-        }
+        if (isLoadingLocalIP) return
+
+        if (debugMode) console.log("🏠 Requesting local addresses")
+        isLoadingLocalIP = true
+        executable.exec(localAddressesCommand)
     }
 
     function getPublicIP() {
-        if (!isLoadingIP) {
-            if (debugMode) console.log("🌐 Requesting public IP")
-            isLoadingIP = true
-            executable.exec("curl -s --max-time 5 https://api.ipify.org")
+        if (showingLocalIP || isLoadingIP) return
+
+        if (debugMode) console.log("🌐 Requesting public IP and country")
+        isLoadingIP = true
+        isLoadingCountry = true
+        publicRequestModeEpoch = modeEpoch
+        publicRequestNetworkEpoch = networkEpoch
+        executable.exec(publicLookupCommand)
+    }
+
+    function probeRoute() {
+        if (isProbingRoute) return
+
+        isProbingRoute = true
+        executable.exec(routeProbeCommand)
+    }
+
+    function isValidIPv4(address) {
+        var parts = String(address).split(".")
+        if (parts.length !== 4) return false
+
+        for (var i = 0; i < parts.length; ++i) {
+            if (!/^\d{1,3}$/.test(parts[i])) return false
+            var octet = Number(parts[i])
+            if (octet < 0 || octet > 255) return false
+        }
+        return true
+    }
+
+    function isValidIPv6(address) {
+        var value = String(address).trim()
+        if (!value || value.indexOf(":") === -1 || !/^[0-9A-Fa-f:]+$/.test(value)) return false
+        if (value.indexOf("::") !== value.lastIndexOf("::")) return false
+
+        var halves = value.split("::")
+        var leftGroups = halves[0] ? halves[0].split(":") : []
+        var rightGroups = halves.length === 2 && halves[1] ? halves[1].split(":") : []
+        var groupCount = leftGroups.length + rightGroups.length
+
+        for (var i = 0; i < leftGroups.length; ++i) {
+            if (!/^[0-9A-Fa-f]{1,4}$/.test(leftGroups[i])) return false
+        }
+        for (var j = 0; j < rightGroups.length; ++j) {
+            if (!/^[0-9A-Fa-f]{1,4}$/.test(rightGroups[j])) return false
+        }
+
+        // A compressed address must omit at least one of the eight groups.
+        return halves.length === 2 ? groupCount < 8 : groupCount === 8
+    }
+
+    function isValidIPAddress(address) {
+        return isValidIPv4(address) || isValidIPv6(address)
+    }
+
+    function localAddressFromOutput(output) {
+        var lines = String(output).trim().split("\n")
+        var wantedInterface = String(selectedInterface || "").split("@")[0]
+        var firstAddress = ""
+        var routedAddress = ""
+
+        // Parse the constant command output in QML. The configured interface is
+        // data, never shell input, so a hand-edited setting cannot inject code.
+        for (var i = 0; i < lines.length; ++i) {
+            var match = /^\d+:\s+(\S+)\s+inet\s+([0-9.]+)\//.exec(lines[i])
+            if (!match || !isValidIPv4(match[2])) continue
+
+            var interfaceName = match[1].split("@")[0]
+            var address = match[2]
+            if (!firstAddress) firstAddress = address
+            if (address === routedLocalIP) routedAddress = address
+            if (wantedInterface && interfaceName === wantedInterface) return address
+        }
+
+        return wantedInterface ? "" : (routedAddress || firstAddress)
+    }
+
+    function publicDataFromOutput(output) {
+        try {
+            var response = JSON.parse(String(output).trim())
+            var address = response && typeof response.ip === "string" ? response.ip.trim() : ""
+            var country = response && typeof response.country === "string" ? response.country.trim().toUpperCase() : ""
+            return {
+                address: address,
+                country: country,
+                isAddressValid: isValidIPAddress(address),
+                isCountryValid: /^[A-Z]{2}$/.test(country)
+            }
+        } catch (error) {
+            if (debugMode) console.log("❌ Invalid public lookup response:", error)
+            return {
+                address: "",
+                country: "",
+                isAddressValid: false,
+                isCountryValid: false
+            }
         }
     }
 
-    function getCountryCode() {
-        if (!isLoadingCountry && publicIP) {
-            if (debugMode) console.log("🌍 Requesting country code for IP:", publicIP)
-            isLoadingCountry = true
-            executable.exec("curl -s --max-time 5 https://ipapi.co/" + publicIP + "/country")
+    function publicRetryDelay() {
+        var delays = [30000, 60000, 120000, 300000, 600000, 1800000]
+        return delays[Math.min(Math.max(publicFailureCount - 1, 0), delays.length - 1)]
+    }
+
+    function schedulePublicRefresh(delay) {
+        if (showingLocalIP) {
+            publicRefreshTimer.stop()
+            return
         }
+
+        publicRefreshTimer.interval = Math.max(1000, delay)
+        publicRefreshTimer.restart()
+    }
+
+    function refreshCurrentMode(forcePublicRefresh) {
+        if (showingLocalIP) {
+            publicRefreshTimer.stop()
+            getLocalIP()
+        } else if (forcePublicRefresh || !publicIP || !countryCode) {
+            publicRefreshTimer.stop()
+            getPublicIP()
+        } else if (!publicRefreshTimer.running) {
+            schedulePublicRefresh(publicRefreshInterval)
+        }
+    }
+
+    function refreshAfterNetworkEvent(reason) {
+        networkEpoch += 1
+        if (debugMode) console.log("🔄 Network context changed:", reason)
+        refreshCurrentMode(true)
+    }
+
+    function handleRouteProbe(output) {
+        var normalizedRoute = String(output).trim()
+        var sourceMatch = /\bsrc\s+([0-9.]+)/.exec(normalizedRoute)
+        routedLocalIP = sourceMatch && isValidIPv4(sourceMatch[1]) ? sourceMatch[1] : ""
+
+        if (!routeFingerprint) {
+            routeFingerprint = normalizedRoute || "unavailable"
+            if (showingLocalIP && !selectedInterface && routedLocalIP) {
+                localIP = routedLocalIP
+            }
+            return
+        }
+
+        var newFingerprint = normalizedRoute || "unavailable"
+        if (newFingerprint !== routeFingerprint) {
+            routeFingerprint = newFingerprint
+            refreshAfterNetworkEvent("route")
+        }
+    }
+
+    function handlePublicLookup(output) {
+        isLoadingIP = false
+        isLoadingCountry = false
+
+        // A curl already running cannot be reliably cancelled by DataSource.
+        // Ignore its result if the user changed mode or the route changed.
+        var staleReply = showingLocalIP
+            || publicRequestModeEpoch !== modeEpoch
+            || publicRequestNetworkEpoch !== networkEpoch
+        if (staleReply) {
+            if (!showingLocalIP) getPublicIP()
+            return
+        }
+
+        var publicData = publicDataFromOutput(output)
+        if (publicData.isAddressValid) {
+            publicIP = publicData.address
+            if (publicData.isCountryValid) {
+                countryCode = publicData.country
+                publicFailureCount = 0
+                schedulePublicRefresh(publicRefreshInterval)
+                if (debugMode) console.log("🌍 Public data received for country:", countryCode)
+            } else {
+                // The address remains useful on its own. Hide a stale flag and
+                // retry only the combined lookup with bounded backoff.
+                countryCode = ""
+                publicFailureCount += 1
+                schedulePublicRefresh(publicRetryDelay())
+                if (debugMode) console.log("❌ Country code missing; retry scheduled")
+            }
+            return
+        }
+
+        // Keep the last valid values during a temporary outage instead of
+        // making a known IP and flag disappear after one failed request.
+        publicFailureCount += 1
+        schedulePublicRefresh(publicRetryDelay())
+        if (debugMode) console.log("❌ Public lookup failed; retry scheduled")
     }
 
     /**
@@ -331,62 +391,54 @@ PlasmoidItem {
     Connections {
         target: executable
         function onExited(cmd, stdout, stderr) {
-            if (cmd.indexOf("ip -4 addr") !== -1) {
-                localIP = stdout.trim()
+            if (cmd === localAddressesCommand) {
+                isLoadingLocalIP = false
+                localIP = localAddressFromOutput(stdout)
                 if (debugMode) console.log("🏠 Local IP received:", localIP)
-            } 
-            else if (cmd.indexOf("ipify.org") !== -1) {
-                isLoadingIP = false
-                if (stdout.trim() !== "") {
-                    var newIP = stdout.trim()
-                    // Check if IP has changed
-                    if (newIP !== publicIP) {
-                        if (debugMode) console.log("🔄 IP change detected:", publicIP, "->", newIP)
-                        publicIP = newIP
-                        countryCode = ""  // Reset country code
-                        getCountryCode()  // Request new country code
-                    }
-                } else {
-                    publicIP = ""
-                    countryCode = ""
-                    if (debugMode) console.log("❌ No public IP received")
-                }
+            } else if (cmd === routeProbeCommand) {
+                isProbingRoute = false
+                handleRouteProbe(stdout)
+            } else if (cmd === publicLookupCommand) {
+                handlePublicLookup(stdout)
             }
-            else if (cmd.indexOf("ipapi.co") !== -1) {
-                isLoadingCountry = false
-                var newCountry = stdout.trim()
-                if (newCountry.length === 2) {
-                    countryCode = newCountry
-                    if (debugMode) console.log("🌍 Country code received:", countryCode)
-                } else {
-                    countryCode = ""
-                    if (debugMode) console.log("❌ Invalid country code received")
-                }
-            }
-
-            updateDisplay()
         }
     }
 
     /**
      * Update Timer
      * Purpose: Periodically refresh IP information
-     * Operation: Triggers data update every 5 seconds
+     * Operation: Uses local route probes plus mode-specific refresh intervals
      * Usage: Keeps displayed information current
      * Interactions: Initiates data retrieval cycle
      */
     Timer {
-        interval: 5000
+        id: routeProbeTimer
+        interval: 15000
         running: true
         repeat: true
-        onTriggered: {
-            if (showingLocalIP) {
-                getLocalIP()
-            } else {
-                // Check current public IP first
-                executable.exec("curl -s --max-time 5 https://api.ipify.org")
-            }
-        }
+        onTriggered: probeRoute()
+    }
+
+    Timer {
+        id: localRefreshTimer
+        interval: 60000
+        running: showingLocalIP
+        repeat: true
+        onTriggered: getLocalIP()
+    }
+
+    Timer {
+        id: publicRefreshTimer
+        interval: publicRefreshInterval
+        repeat: false
+        onTriggered: getPublicIP()
+    }
+
+    Timer {
+        id: copyFeedbackTimer
+        interval: 2000
+        repeat: false
+        onTriggered: copyFeedbackVisible = false
     }
 
     /**
@@ -397,46 +449,58 @@ PlasmoidItem {
      * Interactions: Coordinate between UI and data components
      */
     function shouldShowFlag() {
-        return (plasmoid.configuration.showFlagOnly || plasmoid.configuration.showFlag) 
-                && countryCode.length === 2
-                && !showingLocalIP
+        return !showingLocalIP
+            && (plasmoid.configuration.showFlagOnly || plasmoid.configuration.showFlag)
+            && /^[A-Z]{2}$/.test(countryCode)
+    }
+
+    function displayedText() {
+        var address = showingLocalIP ? localIP : publicIP
+        var ipText = address || plasmoid.configuration.noIPMessage
+        return customPrefix ? customPrefix + " " + ipText : ipText
+    }
+
+    function configuredTextColor() {
+        var configuredColor = plasmoid.configuration.textColor
+        return configuredColor !== "" && String(configuredColor) !== "#00000000"
+            ? configuredColor
+            : Kirigami.Theme.textColor
+    }
+
+    function displayedTextColor() {
+        var address = showingLocalIP ? localIP : publicIP
+        return address ? configuredTextColor() : plasmoid.configuration.disconnectedTextColor
+    }
+
+    function copyDisplayedIP() {
+        var address = showingLocalIP ? localIP : publicIP
+        if (!isValidIPAddress(address)) {
+            copyFeedbackText = Translations.getTranslation("noIPToCopy", currentLocale)
+        } else {
+            try {
+                clipboard.content = address
+                copyFeedbackText = Translations.getTranslation("ipCopied", currentLocale)
+            } catch (error) {
+                copyFeedbackText = Translations.getTranslation("copyError", currentLocale)
+                if (debugMode) console.log("❌ Clipboard error:", error)
+            }
+        }
+
+        copyFeedbackVisible = true
+        copyFeedbackTimer.restart()
     }
 
     function updateData() {
-        if (showingLocalIP) {
-            getLocalIP()
-        } else if (!publicIP) {
-            getPublicIP()
-        }
+        refreshCurrentMode(true)
     }
 
     function toggleIPDisplay() {
         showingLocalIP = !showingLocalIP
+        modeEpoch += 1
         if (debugMode) {
             console.log("🔄 Mode change:", showingLocalIP ? "Local" : "Public")
         }
-        updateData()
-    }
-
-    function updateDisplay() {
-        if (debugMode) {
-            console.log("🔄 Refreshing widget")
-            console.log("📊 State:", JSON.stringify({
-                showingLocalIP: showingLocalIP,
-                localIP: localIP,
-                publicIP: publicIP,
-                countryCode: countryCode,
-                isLoadingIP: isLoadingIP,
-                isLoadingCountry: isLoadingCountry
-            }, null, 2))
-        }
-
-        contentLayout.Layout.preferredWidth = -1
-        contentLayout.Layout.preferredHeight = -1
-        Qt.callLater(function() {
-            contentLayout.Layout.preferredWidth = contentLayout.implicitWidth
-            contentLayout.Layout.preferredHeight = contentLayout.implicitHeight
-        })
+        refreshCurrentMode(true)
     }
 
     /**
@@ -448,8 +512,8 @@ PlasmoidItem {
      */
     Connections {
         target: plasmoid.configuration
-        function onShowFlagOnlyChanged() { updateDisplay() }
-        function onShowFlagChanged() { updateDisplay() }
-        function onShowTypeLabelChanged() { updateDisplay() }
+        function onSelectedInterfaceChanged() {
+            if (showingLocalIP) Qt.callLater(getLocalIP)
+        }
     }
 }
