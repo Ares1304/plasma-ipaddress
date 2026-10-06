@@ -1,21 +1,20 @@
-## Version v0.9.6
+## Version v0.9.7
 
 ### 🇬🇧 English
 
 #### New Features
 
--   **Panel-aware font sizing**: The 60% to 200% setting now adapts to the panel thickness while keeping the IP type above the address and the flag centered.
+-   **KDE Plasma 5.27 package**: Added a dedicated port with local/public IP display, country flags, automatic interface selection, font-size controls and middle-click copy. Thanks to ange-primiterra for the contribution in PR #9.
 
 #### Improvements
 
--   **Progressive panel scaling**: Increasing or decreasing the configured percentage now changes the rendered text in the same direction, without breaking the compact two-line layout.
--   **Reliable Plasma 6 configuration lifecycle**: Declared the default configuration properties supplied by Plasma so Reset and Cancel keep consistent values without loader warnings.
+-   **Separate downloads**: Plasma 6 and Plasma 5.27 now have distinct download files and versioned ZIP backups, with the same v0.9.7 version in both manifests.
+-   **Clearer installation guidance**: Updated the English and French instructions with the Plasma 5.27, Qt 5.15 and KDE Frameworks 5.102 requirements. The existing Plasma 6 widget code is unchanged.
 
 #### Bug Fixes
 
--   Fixed a panel auto-fit feedback loop that could make a higher font-size percentage render smaller.
--   Fixed the discrepancy between the saved font-size percentage and the size rendered after reopening the configuration or reloading Plasma.
--   Removed the `cfg_*Default` property warnings emitted when Plasma opens the configuration page.
+-   Fixed the Plasma 5 manual-copy instructions so repeated installation updates the existing widget instead of nesting another package directory.
+-   Corrected the compatibility documentation to target Plasma 5.27 rather than claiming support for all Plasma 5.25+ installations.
 
 I will continue to work on improving the widget's features and reliability!
 For any issues or suggestions, please visit our GitHub repository.
@@ -26,18 +25,17 @@ For any issues or suggestions, please visit our GitHub repository.
 
 #### Nouvelles Fonctionnalités
 
--   **Taille de police adaptée au panneau** : Le réglage de 60 % à 200 % s'adapte désormais à l'épaisseur du panneau tout en maintenant le type d'IP au-dessus de l'adresse et le drapeau centré.
+-   **Paquet KDE Plasma 5.27** : Ajout d'un portage dédié avec affichage des IP locale/publique, drapeaux des pays, sélection automatique de l'interface, réglage de la taille de police et copie au clic milieu. Merci à ange-primiterra pour sa contribution dans la PR #9.
 
 #### Améliorations
 
--   **Mise à l'échelle progressive dans le panneau** : Augmenter ou diminuer le pourcentage configuré modifie désormais le texte affiché dans le même sens, sans casser la disposition compacte sur deux lignes.
--   **Cycle de configuration Plasma 6 fiable** : Déclaration des propriétés de configuration par défaut fournies par Plasma afin que Réinitialiser et Annuler conservent des valeurs cohérentes sans avertissement du chargeur.
+-   **Téléchargements séparés** : Plasma 6 et Plasma 5.27 disposent désormais de fichiers de téléchargement et de sauvegardes ZIP versionnées distincts, avec la même version v0.9.7 dans les deux manifestes.
+-   **Installation mieux documentée** : Mise à jour des instructions anglaises et françaises avec les prérequis Plasma 5.27, Qt 5.15 et KDE Frameworks 5.102. Le code du widget Plasma 6 existant reste inchangé.
 
 #### Corrections de Bugs
 
--   Correction d'une boucle de redimensionnement automatique qui pouvait rendre un pourcentage de taille de police supérieur visuellement plus petit dans le panneau.
--   Correction de l'écart entre le pourcentage de taille enregistré et la taille affichée après la réouverture de la configuration ou le rechargement de Plasma.
--   Suppression des avertissements concernant les propriétés `cfg_*Default` lors de l'ouverture de la page de configuration par Plasma.
+-   Correction de la copie manuelle pour Plasma 5 afin qu'une installation répétée mette à jour le widget existant au lieu d'imbriquer un autre dossier de paquet.
+-   Correction de la documentation de compatibilité pour cibler Plasma 5.27 plutôt que d'annoncer la prise en charge de toutes les installations Plasma 5.25+.
 
 Je continuerai à travailler pour améliorer les fonctionnalités et la fiabilité du widget !
 Pour tout problème ou suggestion, veuillez visiter notre dépôt GitHub.

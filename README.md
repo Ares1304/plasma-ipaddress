@@ -2,12 +2,16 @@
 
 This addon allows you to easily view your local and public IP addresses directly from your KDE Plasma desktop.
 
-**Current version: v0.9.6**
+**Current version: v0.9.7**
 
 Two packages are provided:
 
-- `package/` — for **KDE Plasma 6.x**
-- `package-plasma5/` — for **KDE Plasma 5.27** (the only officially supported Plasma 5 release); see [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+- `package/` — for **KDE Plasma 6.x**; [download from KDE Store](https://store.kde.org/p/2216429/)
+- `package-plasma5/` — for **KDE Plasma 5.27** (the only officially supported Plasma 5 release); [download from KDE Store](https://store.kde.org/p/2377324/); see [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+
+Choose the download matching your Plasma version. Both packages use version v0.9.7 and the same widget ID, so they are alternatives, not two widgets to install together. The Plasma 6 widget code is unchanged in this release. Local backups are kept separately as `v0.9.7.zip` and `v0.9.7-plasma5.zip`.
+
+Thanks to [ange-primiterra](https://github.com/ange-primiterra) for the Plasma 5.27 port in [PR #9](https://github.com/Ares1304/plasma-ipaddress/pull/9).
 
 ## Installation
 
@@ -43,12 +47,16 @@ Right-click on the widget and select "Configure..." to choose automatic or manua
 
 Cet addon vous permet de visualiser facilement vos adresses IP locales et publiques directement depuis votre bureau KDE Plasma.
 
-**Version actuelle : v0.9.6**
+**Version actuelle : v0.9.7**
 
 Deux paquets sont fournis :
 
-- `package/` — pour **KDE Plasma 6.x**
-- `package-plasma5/` — pour **KDE Plasma 5.27** (seule version Plasma 5 officiellement prise en charge) ; voir [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+- `package/` — pour **KDE Plasma 6.x** ; [télécharger sur KDE Store](https://store.kde.org/p/2216429/)
+- `package-plasma5/` — pour **KDE Plasma 5.27** (seule version Plasma 5 officiellement prise en charge) ; [télécharger sur KDE Store](https://store.kde.org/p/2377324/) ; voir [INSTALLATION_PLASMA_5.27.md](INSTALLATION_PLASMA_5.27.md)
+
+Choisissez le téléchargement correspondant à votre version de Plasma. Les deux paquets utilisent la version v0.9.7 et le même identifiant de widget : ce sont deux variantes, pas deux widgets à installer ensemble. Le code du widget Plasma 6 ne change pas dans cette version. Les sauvegardes locales sont conservées séparément sous `v0.9.7.zip` et `v0.9.7-plasma5.zip`.
+
+Merci à [ange-primiterra](https://github.com/ange-primiterra) pour le portage Plasma 5.27 dans la [PR #9](https://github.com/Ares1304/plasma-ipaddress/pull/9).
 
 ## Installation
 

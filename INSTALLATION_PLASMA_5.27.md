@@ -22,6 +22,16 @@ sudo dnf install curl iproute2  # Fedora
 
 ### With kpackagetool5 (recommended)
 
+Download v0.9.7 from the dedicated [Plasma 5.27 KDE Store page](https://store.kde.org/p/2377324/), then run:
+
+```bash
+kpackagetool5 --type Plasma/Applet --install ./org.kde.plasma.ipaddress-plasma5
+# To upgrade an existing installation:
+kpackagetool5 --type Plasma/Applet --upgrade ./org.kde.plasma.ipaddress-plasma5
+```
+
+From a copy of this repository:
+
 ```bash
 kpackagetool5 --type Plasma/Applet --install package-plasma5
 # To upgrade an existing installation:
@@ -79,6 +89,16 @@ sudo dnf install curl iproute2  # Fedora
 ## Installation
 
 ### Avec kpackagetool5 (recommandé)
+
+Téléchargez la v0.9.7 depuis la [fiche KDE Store dédiée à Plasma 5.27](https://store.kde.org/p/2377324/), puis exécutez :
+
+```bash
+kpackagetool5 --type Plasma/Applet --install ./org.kde.plasma.ipaddress-plasma5
+# Pour mettre à jour une installation existante :
+kpackagetool5 --type Plasma/Applet --upgrade ./org.kde.plasma.ipaddress-plasma5
+```
+
+Depuis une copie de ce dépôt :
 
 ```bash
 kpackagetool5 --type Plasma/Applet --install package-plasma5
